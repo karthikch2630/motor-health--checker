@@ -31,7 +31,7 @@ export default async function run(page) {
     assert(/1 draft/.test(totals), 'draft hint missing')
     const status = await page.getByRole('region', { name: 'Motors by latest assessment' }).innerText()
     assert(/No assessment yet\s*\n?\s*0/.test(status), `status block: ${status.replace(/\n/g, ' ')}`)
-    assert(/Normal\s*\n?\s*1/.test(status), 'motor not counted as Normal at its latest assessment')
+    assert(/Within assessed limits\s*\n?\s*1/.test(status), 'motor not counted as Within assessed limits at its latest assessment')
     assert(/not.*considered healthy/.test(status), 'healthy disclaimer missing')
   })
 
@@ -56,7 +56,7 @@ export default async function run(page) {
     await page.goto(`${BASE}/motors/${motorId}`)
     await page.getByRole('region', { name: 'Latest assessment' }).waitFor(T)
     const latest = await page.getByRole('region', { name: 'Latest assessment' }).innerText()
-    assert(/Normal/.test(latest) && /Open result \(revision 1\)/.test(latest), `latest: ${latest.replace(/\n/g, ' ')}`)
+    assert(/Within assessed limits/.test(latest) && /Open result \(revision 1\)/.test(latest), `latest: ${latest.replace(/\n/g, ' ')}`)
     const rows = (await page.getByRole('table', { name: 'Recent tests of this motor' }).getByRole('row').count()) - 1
     assert(rows === 6, `recent tests rows ${rows}`)
     await page.getByRole('img', { name: /Trend of/ }).waitFor(T)

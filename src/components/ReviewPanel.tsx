@@ -1,3 +1,4 @@
+import { DATA_ORIGIN_LABELS, type DataOrigin } from '../lib/dataOrigin'
 import { LOAD_CONDITION_LABELS, type LoadCondition } from '../lib/combinedVariation'
 import { sortDefinitions } from './MeasurementFields'
 import { DASH, formatDateTime } from '../utils/format'
@@ -21,13 +22,15 @@ interface Props {
   conditions: string | null
   /** Recorded load condition code (operating_conditions.load_condition), if any. */
   loadCondition?: string | null
+  /** Declared origin of the readings (real vs synthetic), if stated. */
+  dataOrigin?: DataOrigin | null
   notes: string | null
   definitions: ParameterDefinition[]
   readings: ReviewReading[]
 }
 
 /** Read-only summary of exactly what is recorded: original values and units, plus normalized values where converted. */
-export default function ReviewPanel({ motor, testTimestamp, method, operator, conditions, loadCondition = null, notes, definitions, readings }: Props) {
+export default function ReviewPanel({ motor, testTimestamp, method, operator, conditions, loadCondition = null, dataOrigin = null, notes, definitions, readings }: Props) {
   const missing = definitions.filter((d) => !readings.some((r) => r.parameter_code === d.code))
   return (
     <div className="space-y-6">
@@ -43,7 +46,21 @@ export default function ReviewPanel({ motor, testTimestamp, method, operator, co
             label="Load during the test (declared)"
             value={loadCondition ? (LOAD_CONDITION_LABELS[loadCondition as LoadCondition] ?? loadCondition) : 'Not recorded'}
           />
+          <Item label="Origin of the readings" value={dataOrigin ? DATA_ORIGIN_LABELS[dataOrigin] : 'Not stated'} />
           <Item label="Operating conditions" value={conditions} />
+          <Item
+            label="Rated specifications (as recorded)"
+            value={
+              motor
+                ? [
+                    motor.rated_voltage !== null ? `${motor.rated_voltage} V` : 'voltage not recorded',
+                    motor.rated_frequency !== null ? `${motor.rated_frequency} Hz` : 'frequency not recorded',
+                    motor.phase_count !== null ? `${motor.phase_count} phase(s)` : 'phases not recorded',
+                    motor.supply_type === 'line' ? 'line supply' : motor.supply_type === 'inverter' ? 'inverter-fed' : 'supply type not verified',
+                  ].join(' · ')
+                : null
+            }
+          />
           <div className="sm:col-span-2 lg:col-span-3">
             <Item label="Notes" value={notes} />
           </div>

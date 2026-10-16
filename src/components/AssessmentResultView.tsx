@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import DiagnosticStatusBadge from './DiagnosticStatusBadge'
 import { isAssessmentComplete } from '../lib/diagnostics'
+import { coverageOf, nextActions } from '../lib/assessmentGuidance'
 import { notCheckedParameters } from '../lib/partialCoverage'
+import ApprovalBadge from './ApprovalBadge'
 import { DASH, formatDateTime } from '../utils/format'
 import type { StoredAssessment, StoredFinding } from '../types/assessment'
 
@@ -14,6 +16,8 @@ interface Props {
   parameterNames?: Record<string, string>
   /** profile id -> name for the link text. */
   profileNames?: Record<string, string>
+  /** Current approval status and source of profiles, by id (shown next to the profile; status is as of now, not as of the assessment). */
+  profileDetails?: Record<string, { approval_status: 'draft' | 'approved' | 'retired'; source_name: string }>
   /** Optional link to the dedicated page for this revision. */
   openHref?: string
 }
@@ -29,12 +33,19 @@ const isUnevaluated = (f: StoredFinding) => /^(DATA_|CONFIG_|PROFILE_)/.test(f.r
  * Renders exactly what was stored: status, summary, profile id/version, rule version and every finding.
  * Nothing here is recalculated, so old revisions look the same whatever has changed since.
  */
-export default function AssessmentResultView({ result, heading, isLatest, parameterNames = {}, profileNames = {}, openHref }: Props) {
+export default function AssessmentResultView({ result, heading, isLatest, parameterNames = {}, profileNames = {}, profileDetails = {}, openHref }: Props) {
   const complete = isAssessmentComplete(result.findings.map((f) => ({ ruleCode: f.rule_code })))
   const unevaluated = result.findings.filter(isUnevaluated)
   const findings = [...result.findings].sort(
     (a, b) => order[a.severity] - order[b.severity] || (a.parameter_code ?? '').localeCompare(b.parameter_code ?? ''),
   )
+  const coverage = coverageOf(
+    result.findings,
+    Object.entries(parameterNames).map(([code, name]) => ({ code, name })),
+    result.reference_profile_id !== null,
+  )
+  const actions = nextActions(result.findings)
+  const detail = result.reference_profile_id ? profileDetails[result.reference_profile_id] : undefined
   const nameOf = (code: string | null) => (code ? (parameterNames[code] ?? code) : DASH)
   // Catalog parameters the applied profile has no finding for. Display only; the stored status is not recomputed.
   const notChecked = notCheckedParameters(result.findings, Object.keys(parameterNames), result.reference_profile_id !== null)
@@ -106,6 +117,29 @@ export default function AssessmentResultView({ result, heading, isLatest, parame
         </p>
       )}
 
+      {Object.keys(parameterNames).length > 0 && (
+        <section aria-label="Coverage" className="mt-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">What was assessed</h4>
+          <p className="mt-1">{coverage.sentence}</p>
+          {coverage.notAssessed.length > 0 && (
+            <ul className="mt-1 list-disc pl-5 text-xs text-slate-600">
+              {coverage.notAssessed.map((n) => (
+                <li key={n.code}><strong>{n.name}:</strong> not assessed. {n.reason}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {actions.length > 0 && (
+        <section aria-label="Next steps" className="mt-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-sky-700">What to do next</h4>
+          <ul className="mt-1 list-disc pl-5">
+            {actions.map((a) => <li key={a}>{a}</li>)}
+          </ul>
+        </section>
+      )}
+
       <dl className="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
         <div>
           <dt className="uppercase tracking-wide text-slate-500">Reference profile</dt>
@@ -116,6 +150,11 @@ export default function AssessmentResultView({ result, heading, isLatest, parame
               </Link>
             ) : (
               'None applied'
+            )}
+            {detail && ['draft', 'approved', 'retired'].includes(detail.approval_status) && (
+              <span className="ml-2 inline-flex items-center gap-1 text-slate-500">
+                <ApprovalBadge status={detail.approval_status} /> now · source: {detail.source_name}
+              </span>
             )}
           </dd>
         </div>

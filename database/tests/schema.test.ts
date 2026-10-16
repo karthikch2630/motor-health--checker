@@ -100,6 +100,19 @@ describe('ownership and row-level security', () => {
     await expect(addReading(session)).rejects.toThrow(/foreign key|row-level/)
   })
 
+  it('reference profiles and limits are owner-scoped: another user cannot see, update or assess against them', async () => {
+    await asUser(A)
+    const profile = await approvedProfile()
+    await asUser(B)
+    expect((await q(`select * from reference_profiles where id=$1`, [profile])).rows).toHaveLength(0)
+    expect((await q(`select * from reference_limits where reference_profile_id=$1`, [profile])).rows).toHaveLength(0)
+    expect((await q(`update reference_profiles set description='x' where id=$1 returning id`, [profile])).rows).toHaveLength(0)
+    const mine = await newSubmitted()
+    await expect(assess(mine.session, profile, 1, 'FAULT_SUSPECTED', [finding()])).rejects.toThrow()
+    await asUser(A)
+    expect((await q(`select * from reference_profiles where id=$1`, [profile])).rows).toHaveLength(1)
+  })
+
   it('gives the anon role no access to application tables or the assessment function', async () => {
     await as('anon')
     await expect(q(`select * from motors`)).rejects.toThrow(/permission denied/)

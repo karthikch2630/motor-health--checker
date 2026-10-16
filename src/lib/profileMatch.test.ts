@@ -69,7 +69,7 @@ describe('supply_type (migration 013): line-supply profiles are never assumed to
     for (const m of [{ ...motor, supply_type: null }, motor]) {
       const r = checkProfileCompatibility(p, m, t)
       expect(r.status).toBe('unknown')
-      expect(r.reasons[0]).toMatch(/supply/)
+      expect(r.reasons[0]).toMatch(/Supply type not verified/)
     }
   })
   it('incompatible for an inverter-fed motor', () => {

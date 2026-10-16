@@ -65,7 +65,7 @@ export function checkProfileCompatibility(
 
   const supply = specs.supply_type
   if (supply === 'line' || supply === 'inverter') {
-    if (!motor.supply_type) unknown.push("The motor's supply (line or inverter-fed) is not recorded, so it cannot be established that this profile applies.")
+    if (!motor.supply_type) unknown.push('Supply type not verified. Confirm the motor nameplate before applying this reference profile.')
     else if (motor.supply_type !== supply) {
       incompatible.push(`The profile is for ${supply === 'line' ? 'fixed-frequency line supply' : 'inverter-fed'} motors; this motor is ${motor.supply_type === 'line' ? 'on a line supply' : 'inverter-fed'}.`)
     }

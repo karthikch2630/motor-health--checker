@@ -157,7 +157,7 @@ describe('AssessmentPanel — results', () => {
 
 describe('DiagnosticStatusBadge', () => {
   it.each([
-    ['NORMAL', 'Normal'], ['WARNING', 'Warning'], ['FAULT_SUSPECTED', 'Fault suspected'],
+    ['NORMAL', 'Within assessed limits'], ['WARNING', 'Warning'], ['FAULT_SUSPECTED', 'Fault suspected'],
     ['INSUFFICIENT_DATA', 'Insufficient data'], ['NOT_ASSESSED', 'Not assessed'],
   ] as const)('renders %s as text', (status, label) => {
     render(<DiagnosticStatusBadge status={status} />)

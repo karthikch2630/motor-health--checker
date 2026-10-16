@@ -11,6 +11,7 @@ import { useAssessments } from '../hooks/useAssessments'
 import { useMotors } from '../hooks/useMotors'
 import { useParameterDefinitions, useProfiles } from '../hooks/useReference'
 import { useTest } from '../hooks/useTests'
+import { dataOriginOf } from '../lib/dataOrigin'
 import { notCheckedParameters } from '../lib/partialCoverage'
 import { formatDateTime } from '../utils/format'
 
@@ -26,6 +27,11 @@ export default function AssessmentResultPage() {
 
   const parameterNames = useMemo(() => Object.fromEntries((defs.data ?? []).map((d) => [d.code, d.display_name])), [defs.data])
   const profileNames = useMemo(() => Object.fromEntries((profiles.data ?? []).map((p) => [p.id, p.name])), [profiles.data])
+
+  const profileDetails = useMemo(
+    () => Object.fromEntries((profiles.data ?? []).map((p) => [p.id, { approval_status: p.approval_status, source_name: p.source_name }])),
+    [profiles.data],
+  )
 
   const back = (
     <Link to={id ? `/tests/${id}` : '/history'} className="mb-4 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-amber-700">
@@ -95,6 +101,7 @@ export default function AssessmentResultPage() {
           isLatest={isLatest}
           parameterNames={parameterNames}
           profileNames={profileNames}
+          profileDetails={profileDetails}
         />
 
         <section aria-labelledby="revisions-h">
@@ -142,6 +149,7 @@ export default function AssessmentResultPage() {
             operator={typeof c.operator === 'string' ? c.operator : null}
             conditions={typeof c.description === 'string' ? c.description : null}
             loadCondition={typeof c.load_condition === 'string' ? c.load_condition : null}
+            dataOrigin={dataOriginOf(c)}
             notes={session.notes}
             definitions={defs.data ?? []}
             readings={test.data.readings}

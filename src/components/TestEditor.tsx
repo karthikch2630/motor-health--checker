@@ -12,6 +12,7 @@ import { validateReadings } from '../lib/measurements'
 import { newTestForm, testToFormValues, validateSessionMeta, type TestFormValues, type TestMetaErrors } from '../lib/testForm'
 import { PartialSaveError, type SaveDraftInput } from '../lib/tests'
 import { LOAD_CONDITIONS, LOAD_CONDITION_LABELS } from '../lib/combinedVariation'
+import { DATA_ORIGINS, DATA_ORIGIN_LABELS, dataOriginOf } from '../lib/dataOrigin'
 import type { Motor } from '../types/motor'
 import type { ParameterDefinition, ReferenceProfileWithCount } from '../types/reference'
 import type { SessionWithReadings } from '../types/test'
@@ -159,6 +160,7 @@ export default function TestEditor({
           operator={typeof op.operator === 'string' ? op.operator : null}
           conditions={typeof op.description === 'string' ? op.description : null}
           loadCondition={typeof op.load_condition === 'string' ? op.load_condition : null}
+          dataOrigin={dataOriginOf(op)}
           notes={reviewInput.session.notes}
           definitions={definitions}
           readings={reviewInput.readings}
@@ -246,6 +248,20 @@ export default function TestEditor({
               <option value="">Not recorded</option>
               {LOAD_CONDITIONS.map((c) => (
                 <option key={c} value={c}>{LOAD_CONDITION_LABELS[c]}</option>
+              ))}
+            </select>
+          </FormField>
+          <FormField
+            id="data_origin"
+            label="Origin of these readings"
+            error={metaErrors.data_origin}
+            hint="State whether the values come from a real instrument or are synthetic/demo values. Synthetic values are not engineering evidence."
+            className="sm:col-span-2"
+          >
+            <select id="data_origin" value={values.data_origin} onChange={(e) => setField('data_origin', e.target.value)} className={inputClass} {...err('data_origin')}>
+              <option value="">Not stated</option>
+              {DATA_ORIGINS.map((o) => (
+                <option key={o} value={o}>{DATA_ORIGIN_LABELS[o]}</option>
               ))}
             </select>
           </FormField>

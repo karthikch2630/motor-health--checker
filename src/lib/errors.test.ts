@@ -15,6 +15,20 @@ describe('describeAuthError', () => {
     expect(describeAuthError({ code: 'email_not_confirmed' })).toMatch(/not been confirmed/)
     expect(describeAuthError({ status: 429 })).toMatch(/Too many attempts/)
   })
+  it('names the cause for configuration, account and service errors', () => {
+    expect(describeAuthError({ code: 'user_banned', status: 400 })).toMatch(/disabled/)
+    expect(describeAuthError({ code: 'email_provider_disabled', status: 422 })).toMatch(/Email provider/)
+    expect(describeAuthError({ code: 'validation_failed', status: 400 })).toMatch(/valid email/)
+    expect(describeAuthError({ status: 401, message: 'Invalid API key' })).toMatch(/key was rejected/)
+    expect(describeAuthError({ status: 500, code: 'unexpected_failure' })).toMatch(/server error/)
+    expect(describeAuthError({ status: 504 })).toMatch(/timed out/)
+  })
+  it('an unknown error shows only a safe reference (code / status), never the server message', () => {
+    const m = describeAuthError({ code: 'some_new_code', status: 418, message: 'token abc.def.ghi password hunter2' })
+    expect(m).toMatch(/reference: some_new_code \/ 418/)
+    expect(m).not.toMatch(/hunter2|abc\.def|token/)
+    expect(describeAuthError({ code: 'bad code with spaces!' })).toBe('Sign-in failed. Please try again.')
+  })
   it('does not leak unknown error text', () => {
     expect(describeAuthError({ message: 'internal secret detail' })).toBe('Sign-in failed. Please try again.')
     expect(describeAuthError(undefined)).toBe('Sign-in failed. Please try again.')

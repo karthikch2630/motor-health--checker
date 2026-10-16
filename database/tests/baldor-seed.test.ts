@@ -12,7 +12,9 @@ import { motorCoverage } from '../../src/lib/profileCoverage'
 const ME = '11111111-1111-1111-1111-111111111111'
 const root = process.cwd()
 const PLACEHOLDER = 'PUT-YOUR-AUTH-USER-UUID-HERE'
-const seed = readFileSync(join(root, 'database/seed_baldor_reference_drafts.sql'), 'utf8').replaceAll(PLACEHOLDER, ME)
+// The owner may have pasted their real User UID into the script; the tests substitute their own fixture user whatever is there.
+const withUser = (sql: string, uid: string) => sql.replace(/(v_user_id_text\s+text\s*:=\s*)'[^']*'/, `$1'${uid}'`)
+const seed = withUser(readFileSync(join(root, 'database/seed_baldor_reference_drafts.sql'), 'utf8'), ME)
 
 async function freshDb(types: string[] = Array(15).fill('induction'), supply: (string | null)[] = Array(15).fill('line')) {
   const db = new PGlite()
@@ -82,7 +84,7 @@ describe('seed_baldor_reference_drafts.sql', () => {
     expect(cov(0).usable).toHaveLength(1)
     expect(cov(1).usable).toHaveLength(0)
     expect(cov(1).unusable[0].match.status).toBe('unknown')
-    expect(cov(1).unusable[0].match.reasons.join(' ')).toMatch(/supply/)
+    expect(cov(1).unusable[0].match.reasons.join(' ')).toMatch(/Supply type not verified/)
     expect(cov(2).usable).toHaveLength(0)
     expect(cov(2).unusable[0].match.status).toBe('incompatible')
     // The engine refuses to apply it as well, with a PROFILE_* finding and INSUFFICIENT_DATA.
@@ -176,7 +178,7 @@ describe('verify/baldor_reference_check.sql', () => {
 })
 
 describe('replace_baldor_reference_draft.sql', () => {
-  const replace = readFileSync(join(root, 'database/replace_baldor_reference_draft.sql'), 'utf8').replaceAll(PLACEHOLDER, ME)
+  const replace = withUser(readFileSync(join(root, 'database/replace_baldor_reference_draft.sql'), 'utf8'), ME)
   const OLD_ID = 'bab00003-0000-4000-8000-000000000001'
 
   async function withOldDraft() {

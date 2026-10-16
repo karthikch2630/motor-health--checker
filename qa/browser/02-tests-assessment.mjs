@@ -111,7 +111,7 @@ export default async function run(page) {
     await submitFromReview(page)
     await page.getByRole('button', { name: 'Run assessment' }).click()
     await waitText(page, 'Assessment saved as revision 1.')
-    await page.getByText('Normal (partial)', { exact: true }).first().waitFor(T)
+    await page.getByText('Within assessed limits (partial)', { exact: true }).first().waitFor(T)
     assert((await page.getByRole('note').filter({ hasText: /Incomplete assessment/ }).count()) === 0, 'complete assessment flagged incomplete')
     // The QA profile covers 2 of the 7 catalog parameters, so this NORMAL must be shown as PARTIAL, never as plain healthy.
     await page.getByText('Partial coverage', { exact: true }).first().waitFor(T)

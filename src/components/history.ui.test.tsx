@@ -135,8 +135,8 @@ describe('AssessmentResultView — stored rendering', () => {
     wrap(<AssessmentResultView result={result({ overall_status: 'NORMAL', findings: [finding({ id: 'w', rule_code: 'WITHIN_LIMITS', severity: 'INFO', parameter_code: 'voltage', finding_description: 'Within.', recommended_action: null })] })} {...props} />)
     expect(screen.getByRole('note')).toHaveTextContent(/Partial assessment - not a statement that the motor is healthy.*Not covered by this profile.*Current/)
     expect(screen.getByText('Partial coverage')).toBeInTheDocument()
-    expect(screen.getByText('Normal (partial)')).toBeInTheDocument() // stored status is NORMAL; shown as partial, never as plain Normal
-    expect(screen.queryByText('Normal', { exact: true })).not.toBeInTheDocument()
+    expect(screen.getByText('Within assessed limits (partial)')).toBeInTheDocument() // stored status is NORMAL; shown as partial, never as plain Normal
+    expect(screen.queryByText('Within assessed limits', { exact: true })).not.toBeInTheDocument()
   })
 
   it('labels the latest revision and earlier revisions differently', () => {
@@ -242,7 +242,7 @@ describe('DashboardPage', () => {
     wrap(<DashboardPage />)
     const status = screen.getByRole('region', { name: 'Motors by latest assessment' })
     expect(within(status).getByText('No assessment yet').nextElementSibling).toHaveTextContent('1') // M2
-    expect(within(status).getByText('Normal').parentElement?.nextElementSibling).toHaveTextContent('1') // M1 at revision 2
+    expect(within(status).getByText('Within assessed limits').parentElement?.nextElementSibling).toHaveTextContent('1') // M1 at revision 2
     expect(within(status).getByText('Warning').parentElement?.nextElementSibling).toHaveTextContent('0') // revision 1 is history
     expect(status).toHaveTextContent(/not.*considered healthy/)
   })
@@ -301,7 +301,7 @@ describe('TestHistoryPage', () => {
     expect(rows[1]).toHaveTextContent('Submitted — awaiting assessment') // s2
     expect(rows[1]).toHaveTextContent('Not assessed — awaiting assessment')
     expect(rows[2]).toHaveTextContent('Assessed') // s1
-    expect(rows[2]).toHaveTextContent('Normal')
+    expect(rows[2]).toHaveTextContent('Within assessed limits')
   })
 
   it('shows the latest revision of the stored assessment and links to it; earlier revisions stay reachable', () => {
@@ -340,7 +340,7 @@ describe('MotorHistory — motor to test to assessment', () => {
   it('shows the stored latest assessment with a link to the exact revision', () => {
     wrap(<MotorHistory motorId="m1" />)
     const latest = screen.getByRole('region', { name: 'Latest assessment' })
-    expect(within(latest).getByText('Normal')).toBeInTheDocument()
+    expect(within(latest).getByText('Within assessed limits')).toBeInTheDocument()
     expect(within(latest).getByRole('link', { name: /revision 2/ })).toHaveAttribute('href', '/tests/s1/assessments/2')
     expect(latest).toHaveTextContent(/stored result of that test/)
   })
@@ -350,7 +350,7 @@ describe('MotorHistory — motor to test to assessment', () => {
     wrap(<MotorHistory motorId="m1" />)
     expect(screen.getByText('No assessment recorded')).toBeInTheDocument()
     expect(screen.getByText(/does not mean it is healthy/)).toBeInTheDocument()
-    expect(screen.queryByText('Normal')).not.toBeInTheDocument()
+    expect(screen.queryByText('Within assessed limits')).not.toBeInTheDocument()
   })
 
   it('lists this motor\'s tests only, each linked to the test and its assessment', () => {
@@ -427,10 +427,10 @@ describe('DiagnosticStatusBadge — partial coverage', () => {
   it('never shows a partial NORMAL as a plain "Normal"', async () => {
     const { default: Badge } = await import('./DiagnosticStatusBadge')
     const { rerender } = render(<Badge status="NORMAL" partial />)
-    expect(screen.getByText('Normal (partial)')).toHaveAttribute('title', expect.stringMatching(/Not a statement that the motor is healthy/))
-    expect(screen.queryByText('Normal', { exact: true })).not.toBeInTheDocument()
+    expect(screen.getByText('Within assessed limits (partial)')).toHaveAttribute('title', expect.stringMatching(/Not a statement that the motor is healthy/))
+    expect(screen.queryByText('Within assessed limits', { exact: true })).not.toBeInTheDocument()
     rerender(<Badge status="NORMAL" />)
-    expect(screen.getByText('Normal', { exact: true })).toBeInTheDocument()
+    expect(screen.getByText('Within assessed limits', { exact: true })).toBeInTheDocument()
     rerender(<Badge status="WARNING" partial />) // partial only affects NORMAL
     expect(screen.getByText('Warning')).toBeInTheDocument()
   })

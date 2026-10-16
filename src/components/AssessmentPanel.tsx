@@ -7,6 +7,8 @@ import Notice from './Notice'
 import { useAssessments, useRunAssessment } from '../hooks/useAssessments'
 import { useSingleFlight } from '../hooks/useSingleFlight'
 import { checkProfileCompatibility } from '../lib/profileMatch'
+import { motorCoverage } from '../lib/profileCoverage'
+import { DATA_ORIGIN_LABELS, dataOriginOf } from '../lib/dataOrigin'
 import type { Motor } from '../types/motor'
 import type { ParameterDefinition, ReferenceProfileWithCount } from '../types/reference'
 import type { TestReading, TestSession } from '../types/test'
@@ -37,6 +39,15 @@ export default function AssessmentPanel({ session, readings, motor, definitions,
     )
   }, [motor, profiles, session.test_timestamp])
 
+  const profileDetails = useMemo(
+    () => Object.fromEntries((profiles ?? []).map((p) => [p.id, { approval_status: p.approval_status, source_name: p.source_name }])),
+    [profiles],
+  )
+  const whyNot = useMemo(
+    () => (motor && compatible.length === 0 ? motorCoverage(motor, profiles ?? [], new Date(session.test_timestamp)).unusable : []),
+    [motor, compatible.length, profiles, session.test_timestamp],
+  )
+  const origin = dataOriginOf(session.operating_conditions)
   const profileId = compatible.length === 1 ? compatible[0].id : chosen || null
   const needsChoice = compatible.length > 1 && chosen === ''
   const hasResults = (assessments.data?.length ?? 0) > 0
@@ -85,6 +96,24 @@ export default function AssessmentPanel({ session, readings, motor, definitions,
             record an <strong>Insufficient data</strong> result with the reason; nothing is compared.
           </p>
         )}
+        {compatible.length === 0 && (
+          <div className="mb-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800">
+            <p className="font-medium">Why no profile applies</p>
+            {whyNot.length === 0 ? (
+              <p className="mt-1 text-slate-600">No reference profile exists yet. Create and approve one in Reference Data, from a documented source.</p>
+            ) : (
+              <ul className="mt-1 list-disc pl-5 text-slate-600">
+                {whyNot.map(({ profile, match }) => (
+                  <li key={profile.id}><strong>{profile.name} v{profile.version}:</strong> {match.reasons.join(' ')}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+        <p className={`mb-3 rounded-md px-3 py-2 text-xs ${origin === 'synthetic' ? 'border border-amber-300 bg-amber-50 text-amber-900' : 'bg-slate-50 text-slate-600'}`}>
+          Readings: <strong>{origin ? DATA_ORIGIN_LABELS[origin] : 'origin not stated'}</strong>.
+          {origin === 'synthetic' && ' This result demonstrates the application and is not engineering evidence about any motor.'}
+        </p>
         <button
           onClick={handleRun}
           disabled={run.isPending || needsChoice || !motor}
@@ -112,6 +141,7 @@ export default function AssessmentPanel({ session, readings, motor, definitions,
             isLatest
             parameterNames={parameterNames}
             profileNames={profileNames}
+            profileDetails={profileDetails}
             openHref={href(latest.revision)}
           />
           {older.length > 0 && (
@@ -126,6 +156,7 @@ export default function AssessmentPanel({ session, readings, motor, definitions,
                     isLatest={false}
                     parameterNames={parameterNames}
                     profileNames={profileNames}
+                    profileDetails={profileDetails}
                     openHref={href(r.revision)}
                   />
                 ))}

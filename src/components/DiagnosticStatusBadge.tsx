@@ -1,7 +1,7 @@
 import type { AssessmentStatus } from '../types'
 
 const styles: Record<AssessmentStatus, { cls: string; label: string }> = {
-  NORMAL: { cls: 'bg-emerald-100 text-emerald-800 ring-emerald-300', label: 'Normal' },
+  NORMAL: { cls: 'bg-emerald-100 text-emerald-800 ring-emerald-300', label: 'Within assessed limits' },
   WARNING: { cls: 'bg-amber-100 text-amber-900 ring-amber-300', label: 'Warning' },
   FAULT_SUSPECTED: { cls: 'bg-red-100 text-red-800 ring-red-300', label: 'Fault suspected' },
   INSUFFICIENT_DATA: { cls: 'bg-slate-200 text-slate-800 ring-slate-400', label: 'Insufficient data' },
@@ -10,14 +10,14 @@ const styles: Record<AssessmentStatus, { cls: string; label: string }> = {
 
 /** Diagnostic assessment status. Text always accompanies colour. */
 export default function DiagnosticStatusBadge({ status, partial = false }: { status: AssessmentStatus; partial?: boolean }) {
-  // A NORMAL that covers only some supported parameters is never shown as a plain, healthy-looking "Normal".
+  // A NORMAL that covers only some supported parameters is never shown as a plain, healthy-looking result.
   if (status === 'NORMAL' && partial) {
     return (
       <span
-        title="Normal for the parameters the profile covers; other parameters were not checked. Not a statement that the motor is healthy."
+        title="Within limits for the parameters the profile covers; other parameters were not checked. Not a statement that the motor is healthy."
         className="inline-block whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-inset ring-amber-300"
       >
-        Normal (partial)
+        Within assessed limits (partial)
       </span>
     )
   }

@@ -1,6 +1,7 @@
 /** Test session form: metadata validation and conversion between database rows and form strings. */
 import { z } from 'zod'
 import { LOAD_CONDITIONS, LOAD_CONDITION_KEY } from './combinedVariation'
+import { DATA_ORIGINS, DATA_ORIGIN_KEY } from './dataOrigin'
 import type { ParameterDefinition } from '../types/reference'
 import type { ReadingFormValues } from './measurements'
 import type { SessionInput, TestReading, TestSession } from '../types/test'
@@ -14,11 +15,13 @@ export interface TestFormValues {
   conditions: string
   /** '' = not recorded, otherwise one of LOAD_CONDITIONS. */
   load_condition: string
+  /** '' = not stated, otherwise one of DATA_ORIGINS. */
+  data_origin: string
   notes: string
   readings: ReadingFormValues
 }
 
-export type TestMetaErrors = Partial<Record<'motor_id' | 'timestamp' | 'measurement_method' | 'operator' | 'conditions' | 'load_condition' | 'notes', string>>
+export type TestMetaErrors = Partial<Record<'motor_id' | 'timestamp' | 'measurement_method' | 'operator' | 'conditions' | 'load_condition' | 'data_origin' | 'notes', string>>
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -39,6 +42,7 @@ export function newTestForm(definitions: ParameterDefinition[], motorId = '', no
     operator: '',
     conditions: '',
     load_condition: '',
+    data_origin: '',
     notes: '',
     readings: emptyReadings(definitions),
   }
@@ -65,6 +69,7 @@ export function testToFormValues(
     operator: typeof c.operator === 'string' ? c.operator : '',
     conditions: typeof c.description === 'string' ? c.description : '',
     load_condition: typeof c[LOAD_CONDITION_KEY] === 'string' ? (c[LOAD_CONDITION_KEY] as string) : '',
+    data_origin: typeof c[DATA_ORIGIN_KEY] === 'string' ? (c[DATA_ORIGIN_KEY] as string) : '',
     notes: session.notes ?? '',
     readings: rows,
   }
@@ -80,6 +85,7 @@ const metaSchema = z.object({
   operator: optional('Operator', 200),
   conditions: optional('Operating conditions', 1000),
   load_condition: z.string().refine((x) => x === '' || (LOAD_CONDITIONS as readonly string[]).includes(x), 'Choose one of the listed load conditions'),
+  data_origin: z.string().refine((x) => x === '' || (DATA_ORIGINS as readonly string[]).includes(x), 'Choose one of the listed options'),
   notes: optional('Notes', 4000),
 })
 
@@ -113,9 +119,11 @@ export function validateSessionMeta(
   delete conditions.operator
   delete conditions.description
   delete conditions[LOAD_CONDITION_KEY]
+  delete conditions[DATA_ORIGIN_KEY]
   if (v.operator !== '') conditions.operator = v.operator
   if (v.conditions !== '') conditions.description = v.conditions
   if (v.load_condition !== '') conditions[LOAD_CONDITION_KEY] = v.load_condition
+  if (v.data_origin !== '') conditions[DATA_ORIGIN_KEY] = v.data_origin
 
   return {
     ok: true,

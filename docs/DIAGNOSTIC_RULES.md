@@ -669,3 +669,14 @@ Submitted tests recorded before this field existed have no load condition, so th
 the profile's applicability cannot detect them. Only the 3-phase line-to-line RMS voltage as a single reading is modelled (phase voltage imbalance is out of scope, 21.8).
 
 Tests: `src/lib/combinedVariation.test.ts` (boundaries, sign, noise, normalization, missing/duplicate/invalid readings, load condition, configuration) and `database/tests/baldor-seed.test.ts` (the seeded profile).
+
+
+### 22.1 User-facing labels, coverage and guidance (display layer, no change to stored statuses)
+
+Stored statuses are unchanged. The labels shown to users are: `NORMAL` -> **Within assessed limits** (never "healthy"; with partial coverage **Within assessed limits (partial)**),
+`WARNING` -> Warning, `FAULT_SUSPECTED` -> Fault suspected (it is always a *suspected* condition; a fault status exists only where an approved hard limit is configured, and the NEMA 12.44.1 profile has none),
+`INSUFFICIENT_DATA` -> Insufficient data, `NOT_ASSESSED` -> Not assessed.
+Every result page also shows, derived from the stored findings only (`src/lib/assessmentGuidance.ts`): **What was assessed** (assessed vs not-assessed parameters, each with the reason: no compatible approved profile, no approved limit in the profile,
+no reading, load condition not recorded/not met, reading or limit unusable) and **What to do next** (plain actions such as "Supply type not verified. Confirm the motor nameplate before applying this reference profile." or "Check the supply voltage and
+frequency ... not evidence that the motor is damaged"). The result also shows the profile's name, version, source and its approval status *now*, and the declared origin of the readings (`operating_conditions.data_origin`: real instrument measurements /
+synthetic-demo values / not stated). Synthetic values are flagged as not engineering evidence. Nothing here is a diagnostic rule.
