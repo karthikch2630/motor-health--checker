@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+body {
+  @apply bg-slate-100 text-slate-900 antialiased;
+}
+
+/*
+ * Table wrappers scroll horizontally on small screens. Screen-reader-only text (sr-only) is absolutely positioned;
+ * without a positioned ancestor it escapes the scroll container and widens the whole page on phones.
+ */
+.overflow-x-auto {
+  position: relative;
+}

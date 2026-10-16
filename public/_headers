@@ -1,0 +1,13 @@
+# Response headers for static hosts that read a "_headers" file (Cloudflare Pages, Netlify).
+# Conservative defaults that do not change how the app works. NOT verified on any host yet.
+# A Content-Security-Policy is deliberately not set here because it must name your own Supabase project URL;
+# see docs/DEPLOYMENT.md ("Optional: Content-Security-Policy") for a template to add after the first deployment.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Hashed build assets never change, so they can be cached for a year.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
