@@ -120,10 +120,12 @@ describe('ownership and row-level security', () => {
     await expect(assess(A, null, null, 'INSUFFICIENT_DATA', [])).rejects.toThrow(/permission denied/)
   })
 
-  it('has RLS enabled and at least one policy on every public table', async () => {
+  it('has RLS enabled on every public table and a policy on every table except the deliberately deny-all workspace_members', async () => {
     await db.exec('reset role')
     expect((await q(`select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' and not c.relrowsecurity`)).rows).toEqual([])
-    expect((await q(`select c.relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' and not exists (select 1 from pg_policies p where p.tablename=c.relname)`)).rows).toEqual([])
+    // workspace_members (migration 014) has RLS on, NO policies and no API privileges on purpose: only an administrator can use it.
+    expect((await q(`select c.relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' and c.relname <> 'workspace_members' and not exists (select 1 from pg_policies p where p.tablename=c.relname)`)).rows).toEqual([])
+    expect((await q(`select count(*)::int n from pg_policies where tablename='workspace_members'`)).rows[0]).toEqual({ n: 0 })
   })
 })
 

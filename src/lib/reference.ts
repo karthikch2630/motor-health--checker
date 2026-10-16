@@ -23,6 +23,7 @@ function client() {
 export function describeReferenceError(error: unknown): string {
   const message = ((error ?? {}) as { message?: string }).message ?? ''
   const rules: [RegExp, string][] = [
+    [/requires approval authority/i, 'You do not have approval authority in this workspace. Ask the workspace owner to approve or retire this profile.'],
     [/has no limits and cannot be approved/i, 'Add at least one limit before approving this profile.'],
     [/Limits of reference profile .* cannot be changed/i, 'Limits can only be changed while the profile is a draft. Create a new version instead.'],
     [/Approved reference profile .* is immutable/i, 'An approved profile cannot be edited. Create a new version instead.'],

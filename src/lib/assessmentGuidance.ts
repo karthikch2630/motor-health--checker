@@ -48,6 +48,7 @@ export function coverageOf(
     else if (own.some((f) => f.rule_code === 'DATA_CONDITION_NOT_ESTABLISHED')) reason = 'The required load condition is not recorded for this test.'
     else if (own.some((f) => f.rule_code === 'DATA_CONDITION_NOT_MET')) reason = 'The test was not recorded at the load condition this check requires.'
     else if (own.some((f) => f.rule_code === 'DATA_MISSING_READING')) reason = 'No reading was recorded.'
+    else if (own.some((f) => f.rule_code === 'DATA_NO_LIMIT_FOR_READING')) reason = 'A reading was recorded, but the applied profile has no approved limit for it, so it was not judged.'
     else if (own.some((f) => f.rule_code.startsWith('DATA_') || f.rule_code.startsWith('CONFIG_'))) reason = 'The reading or the limit could not be used (see findings).'
     else reason = 'The applied profile has no approved limit for it.'
     notAssessed.push({ code: p.code, name: p.name, reason })

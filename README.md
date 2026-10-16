@@ -42,9 +42,9 @@ If these are missing, the app still starts and shows a configuration banner. `.e
 
 1. **Create a project** at <https://supabase.com/dashboard> (free plan is enough). Note the database password.
 2. **Apply the migrations.** Open *SQL Editor → New query*, then paste and run each file from
-   `database/migrations/` **in numeric order**, `001` through `013`, one at a time. Each must finish with
+   `database/migrations/` **in numeric order**, `001` through `014`, one at a time. Each must finish with
    "Success" before you run the next. Run them once only; they are not idempotent.
-   **If you already applied `001`–`009` earlier**, run only `010` to `013`, in that order. **If you already applied `001`–`012`, run only `013` — and do it BEFORE deploying this version of the frontend** (the motor form sends the new `supply_type` field). Do not re-run
+   **If you already applied `001`–`009` earlier**, run only `010` to `014`, in that order. **If you already applied `001`–`012`, run only `013` — and do it BEFORE deploying this version of the frontend** (the motor form sends the new `supply_type` field). Do not re-run
    the older files.
    - `010` makes submitted tests immutable (see "Test lifecycle" below).
    - `011` adds the `save_diagnostic_assessment` function used to store assessments atomically. Until it is
@@ -243,7 +243,7 @@ depends on the hosted Supabase project.
 
 ### Manual verification still needed on the hosted project
 
-After you create the project, apply 001–013 and create your user: sign in, refresh, create a motor, record and submit a
+After you create the project, apply 001–014 and create your user: sign in, refresh, create a motor, record and submit a
 test, create and approve a profile **from a real source**, run an assessment and a reassessment, open the earlier revision,
 sign out. Confirm in the Supabase dashboard that sign-ups are disabled and every table shows RLS enabled. Also try a
 second account (if you create one) to confirm it sees none of the first account's data.
@@ -288,7 +288,7 @@ src/
   lib/          supabase.ts (client), auth.tsx (session), motors.ts + reference.ts + tests.ts (data access), measurements.ts (units),
                 motorSchema.ts + referenceSchema.ts (Zod validation), diagnostics.ts (diagnostic engine, UI-independent)
   types/        shared TypeScript types
-database/migrations/   SQL migrations 001-013 (eight tables, RLS, lifecycle rules, assessment function, hardening)
+database/migrations/   SQL migrations 001-014 (eight tables, RLS, lifecycle rules, assessment function, hardening)
 database/tests/        PostgreSQL tests of the migrations (in-memory, run by npm test)
 qa/                    LOCAL QA backend (not Supabase) and browser QA scripts
 scripts/               predeploy-check.mjs (environment and build checks) and its tests

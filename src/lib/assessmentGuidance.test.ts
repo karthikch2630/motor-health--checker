@@ -30,6 +30,11 @@ describe('coverageOf', () => {
     expect(c.notAssessed.find((x) => x.code === 'voltage')?.reason).toBe('No reading was recorded.')
     expect(c.notAssessed.find((x) => x.code === 'frequency')?.reason).toMatch(/load condition/)
   })
+  it('a measured parameter the profile has no limit for is explained as "no approved limit", not as an unusable reading', () => {
+    const c = coverageOf([f('DATA_NO_LIMIT_FOR_READING', 'current'), f('WITHIN_LIMITS', 'voltage')], catalog.slice(0, 3), true)
+    expect(c.notAssessed.find((x) => x.code === 'current')?.reason).toMatch(/recorded, but the applied profile has no approved limit/)
+    expect(c.notAssessed.find((x) => x.code === 'current')?.reason).not.toMatch(/could not be used/)
+  })
   it('a warning counts as assessed', () => {
     expect(coverageOf([f('WARNING_ABOVE_UPPER', 'voltage', 'WARNING')], catalog.slice(0, 1), true).assessed).toHaveLength(1)
   })
